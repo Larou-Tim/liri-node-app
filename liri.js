@@ -2,6 +2,7 @@ var keys = require("./keys.js");
 var inquirer = require("inquirer");
 var twitter = require("twitter");
 var spotify = require('spotify');
+var request = require("request");
 
 var inputOptions = ["my-tweets", `spotify-this-song`, `movie-this`, `do-what-it-says`, 'Exit']
 
@@ -16,7 +17,6 @@ function liriMenu() {
             name: "start"
         }
 
-
     ]).then(function (user) {
 
         switch (user.start) {
@@ -28,17 +28,11 @@ function liriMenu() {
                 spotifyMenu();
                 break;
             case "movie-this":
+                movieMenu();
                 break;
             case "do-what-it-says":
                 break;
             case "Exit":
-                break;
-            default:
-                console.log("I'm sorry your options are:")
-                for (var i = 0; i < inputOptions.length; i++) {
-                    console.log(" * " + inputOptions[i]);
-                }
-                liriMenu();
                 break;
         }
     });
@@ -66,14 +60,6 @@ function showTweets() {
     });
 }
 
-// * Artist(s)
-//      * The song's name
-//      * A preview link of the song from Spotify
-//      * The album that the song is from
-
-//    * if no song is provided then your program will default to
-//      * "The Sign" by Ace of Base
-
 function spotifyMenu() {
     inquirer.prompt([
         {
@@ -94,8 +80,8 @@ function spotifyMenu() {
     });
 
 }
-function spotifySong(arg) {
 
+function spotifySong(arg) {
 
     spotify.search({ type: 'track', query: arg }, function (err, data) {
         if (err) {
@@ -111,4 +97,67 @@ function spotifySong(arg) {
         liriMenu();
     });
 
+}
+
+
+function movieMenu() {
+    inquirer.prompt([
+        {
+            type: "input",
+            message: "What movie would you like to search?",
+            name: "movieParam"
+        }
+
+        //could add input for track//artist//album
+
+    ]).then(function (user) {
+        if (user.movieParam == "") {
+            omdbRequest("mr.nobody");
+        }
+        else {
+            omdbRequest(user.movieParam);
+        }
+    });
+}
+
+function omdbRequest(movie) {
+
+    //  * Title of the movie.
+    //    * Year the movie came out.
+    //    * IMDB Rating of the movie.
+    //    * Country where the movie was produced.
+    //    * Language of the movie.
+    //    * Plot of the movie.
+    //    * Actors in the movie.
+    //    * Rotten Tomatoes Rating.
+    //    * Rotten Tomatoes URL.
+
+
+// need a bad request handler
+
+    var url = "http://www.omdbapi.com/?t=" + movie + "&y=&plot=short&r=json";
+
+    request(url, function (error, response, body) {
+
+        if (!error && response.statusCode == 200) {
+            // console.log(body);
+            // console.log(url);
+            // console.log(response);
+            console.log("-------------------------------------------------------------------");
+            console.log("Title: ", JSON.parse(body).Title);
+            console.log("Release Year: ", JSON.parse(body).Released);
+            console.log("IMDB Rating: ", JSON.parse(body).imdbRating);
+            console.log("Country of Production: ", JSON.parse(body).Country);
+            console.log("Movie Language: ", JSON.parse(body).Language);
+            console.log("Movie Plot: ", JSON.parse(body).Plot);
+            console.log("Actors: ", JSON.parse(body).Actors);
+            console.log("Rotten Tomatoes Rating: ", JSON.parse(body).Ratings[1].Value);
+            // console.log("Rotten Tomatoes Link: ", JSON.parse(body).Released);
+
+            console.log("-------------------------------------------------------------------");
+            // console.log(index);
+            // console.log(movieObj);
+            liriMenu();
+        }
+    });
 }
