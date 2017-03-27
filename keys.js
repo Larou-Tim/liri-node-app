@@ -1,5 +1,4 @@
 //```JavaScript
-console.log('this is loaded');
 
 exports.twitterKeys = {
   consumer_key: 'GYm0nrBuXAPLattRaObbOXQOR',
