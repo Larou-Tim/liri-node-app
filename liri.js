@@ -6,7 +6,41 @@ var request = require("request");
 
 var inputOptions = ["my-tweets", `spotify-this-song`, `movie-this`, `do-what-it-says`, 'Exit']
 
-liriMenu();
+var inputs = process.argv;
+
+if (inputs.length == 2) {
+    liriMenu();
+}
+else {
+    var searchParam = "";
+
+    switch (inputs[2]) {
+        case "my-tweets":
+            showTweets();
+            break;
+        case "spotify-this-song":
+            if (inputs.length > 3) {
+                for (var i = 3; i < inputs.length; i++) {
+                    searchParam += inputs[i] + " ";
+                }
+            }
+            spotifySong(searchParam);
+            break;
+        case "movie-this":
+
+            if (inputs.length > 3) {
+                for (var i = 3; i < inputs.length; i++) {
+                    searchParam += inputs[i].toLowerCase();
+                }
+            }
+            omdbRequest(searchParam);
+            break;
+        case "do-what-it-says":
+            break;
+    }
+}
+
+
 
 function liriMenu() {
     inquirer.prompt([
@@ -71,34 +105,47 @@ function spotifyMenu() {
         //could add input for track//artist//album
 
     ]).then(function (user) {
-        if (user.spotifyParam == "") {
-            spotifySong("The sign ace of base");
-        }
-        else {
-            spotifySong(user.spotifyParam);
-        }
+        // if (user.spotifyParam == "") {
+        //     spotifySong("The sign ace of base");
+        // }
+        // else {
+        spotifySong(user.spotifyParam);
+        // }
     });
 
 }
 
 function spotifySong(arg) {
+    var songSearch = ""
+    if (arg == "") {
+        songSearch = ("The sign ace of base");
+    }
+    else {
+        songSearch = arg;
+    }
 
-    spotify.search({ type: 'track', query: arg }, function (err, data) {
+    spotify.search({ type: 'track', query: songSearch }, function (err, data) {
         if (err) {
             console.log('Error occurred: ' + err);
             return;
         }
-        console.log("-------------------------------------------------------------------");
-        console.log("Artist: ", data.tracks.items[0].artists[0].name);
-        console.log("Album: ", data.tracks.items[0].album.name);
-        console.log("Track Name: ", data.tracks.items[0].name);
-        console.log("Previrew Link: ", data.tracks.items[0].preview_url)
-        console.log("-------------------------------------------------------------------");
-        liriMenu();
+        if (data.tracks.items.length) {
+            console.log("-------------------------------------------------------------------");
+            console.log("Artist: ", data.tracks.items[0].artists[0].name);
+            console.log("Album: ", data.tracks.items[0].album.name);
+            console.log("Track Name: ", data.tracks.items[0].name);
+            console.log("Previrew Link: ", data.tracks.items[0].preview_url)
+            console.log("-------------------------------------------------------------------");
+            liriMenu();
+        }
+        else {
+            console.log("-------------------------------------------------------------------");
+            console.log("No song found.");
+            console.log("-------------------------------------------------------------------");
+        }
     });
 
 }
-
 
 function movieMenu() {
     inquirer.prompt([
@@ -111,12 +158,9 @@ function movieMenu() {
         //could add input for track//artist//album
 
     ]).then(function (user) {
-        if (user.movieParam == "") {
-            omdbRequest("mr.nobody");
-        }
-        else {
-            omdbRequest(user.movieParam);
-        }
+
+        omdbRequest(user.movieParam);
+
     });
 }
 
@@ -132,10 +176,17 @@ function omdbRequest(movie) {
     //    * Rotten Tomatoes Rating.
     //    * Rotten Tomatoes URL.
 
+    var movieRequest = "mr.nobody";
 
-// need a bad request handler
 
-    var url = "http://www.omdbapi.com/?t=" + movie + "&y=&plot=short&r=json";
+    // need a bad request handler
+    if (movie != "") {
+        movieRequest = movie;
+    }
+
+    console.log(movieRequest);
+
+    var url = "http://www.omdbapi.com/?t=" + movieRequest + "&y=&plot=short&r=json";
 
     request(url, function (error, response, body) {
 
@@ -151,7 +202,9 @@ function omdbRequest(movie) {
             console.log("Movie Language: ", JSON.parse(body).Language);
             console.log("Movie Plot: ", JSON.parse(body).Plot);
             console.log("Actors: ", JSON.parse(body).Actors);
-            console.log("Rotten Tomatoes Rating: ", JSON.parse(body).Ratings[1].Value);
+            if (JSON.parse(body).Ratings) {
+                console.log("Rotten Tomatoes Rating: ", JSON.parse(body).Ratings[1].Value);
+            }
             // console.log("Rotten Tomatoes Link: ", JSON.parse(body).Released);
 
             console.log("-------------------------------------------------------------------");
