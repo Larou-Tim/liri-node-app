@@ -4,10 +4,12 @@ var twitter = require("twitter");
 var spotify = require('spotify');
 var request = require("request");
 
+//Options that are used in menus
 var inputOptions = [" > Show my Tweets", ` > Spotify a song`, ` > Movie Look-up`, ` > Do What it Says`, ' > Exit']
 
 var inputs = process.argv;
 
+// determines if menu or discrete call is being run by user
 if (inputs.length == 2) {
     liriMenu();
 }
@@ -21,23 +23,10 @@ else {
     discreteCall(inputs[2], searchParam);
 }
 
-function discreteCall(option, param) {
-    switch (option) {
-        case "my-tweets":
-            showTweets();
-            break;
-        case "spotify-this-song":
-            spotifySong(param);
-            break;
-        case "movie-this":
-            omdbRequest(param);
-            break;
-        case "do-what-it-says":
-            doWhat();
-            break;
-    }
-}
-
+//-------------------------------
+//Menus
+//-------------------------------
+//main lirimenu
 function liriMenu() {
     var exit = false;
     inquirer.prompt([
@@ -67,6 +56,54 @@ function liriMenu() {
     });
 }
 
+//subMenus
+function spotifyMenu() {
+    inquirer.prompt([
+        {
+            type: "input",
+            message: "What song would you like to spotify",
+            name: "spotifyParam"
+        }
+    ]).then(function (user) {
+        spotifySong(user.spotifyParam);
+    });
+}
+
+function movieMenu() {
+    inquirer.prompt([
+        {
+            type: "input",
+            message: "What movie would you like to search?",
+            name: "movieParam"
+        }
+    ]).then(function (user) {
+        omdbRequest(user.movieParam);
+    });
+}
+
+//-------------------------------
+//Handler when calling functions by name
+//-------------------------------
+function discreteCall(option, param) {
+    switch (option) {
+        case "my-tweets":
+            showTweets();
+            break;
+        case "spotify-this-song":
+            spotifySong(param);
+            break;
+        case "movie-this":
+            omdbRequest(param);
+            break;
+        case "do-what-it-says":
+            doWhat();
+            break;
+    }
+}
+
+//-------------------------------
+//Operating functions
+//-------------------------------
 function showTweets() {
     var twitterClient = new twitter({
         consumer_key: keys.twitterKeys.consumer_key,
@@ -88,18 +125,6 @@ function showTweets() {
         if (inputs.length == 2) {
             liriMenu();
         }
-    });
-}
-
-function spotifyMenu() {
-    inquirer.prompt([
-        {
-            type: "input",
-            message: "What song would you like to spotify",
-            name: "spotifyParam"
-        }
-    ]).then(function (user) {
-        spotifySong(user.spotifyParam);
     });
 }
 
@@ -137,18 +162,6 @@ function spotifySong(arg) {
         }
     });
 
-}
-
-function movieMenu() {
-    inquirer.prompt([
-        {
-            type: "input",
-            message: "What movie would you like to search?",
-            name: "movieParam"
-        }
-    ]).then(function (user) {
-        omdbRequest(user.movieParam);
-    });
 }
 
 function omdbRequest(movie) {
