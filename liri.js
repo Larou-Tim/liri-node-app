@@ -98,6 +98,11 @@ function discreteCall(option, param) {
         case "do-what-it-says":
             doWhat();
             break;
+        default: 
+        console.log("-------------------------------------------------------------------");
+        console.log("Action not found, please try again.");
+        console.log("Try one of these options: my-tweets, spotify-this-song, movie-this, or do-what-it-says");
+        console.log("-------------------------------------------------------------------");
     }
 }
 
@@ -194,7 +199,7 @@ function omdbRequest(movie) {
             }
             else {
                 console.log("-------------------------------------------------------------------");
-                console.log("Movie: " + movieRequest + "was not found!");
+                console.log("Movie: " + movieRequest + " was not found!");
                 console.log("-------------------------------------------------------------------");
             }
             if (inputs.length == 2) {
