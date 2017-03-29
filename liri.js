@@ -4,9 +4,7 @@ var twitter = require("twitter");
 var spotify = require('spotify');
 var request = require("request");
 
-// add arg to not call menu if discrete call is applied
-
-var inputOptions = [" > Show my Tweets", ` > Spotify a song`, ` > Movie Look-up`, ` > do-what-it-says`, ' > Exit']
+var inputOptions = [" > Show my Tweets", ` > Spotify a song`, ` > Movie Look-up`, ` > Do What it Says`, ' > Exit']
 
 var inputs = process.argv;
 
@@ -15,36 +13,33 @@ if (inputs.length == 2) {
 }
 else {
     var searchParam = "";
+    if (inputs.length > 3) {
+        for (var i = 3; i < inputs.length; i++) {
+            searchParam += inputs[i] + " ";
+        }
+    }
+    discreteCall(inputs[2], searchParam);
+}
 
-    switch (inputs[2]) {
+function discreteCall(option, param) {
+    switch (option) {
         case "my-tweets":
             showTweets();
             break;
         case "spotify-this-song":
-            if (inputs.length > 3) {
-                for (var i = 3; i < inputs.length; i++) {
-                    searchParam += inputs[i] + " ";
-                }
-            }
-            spotifySong(searchParam);
+            spotifySong(param);
             break;
         case "movie-this":
-
-            if (inputs.length > 3) {
-                for (var i = 3; i < inputs.length; i++) {
-                    searchParam += inputs[i].toLowerCase();
-                }
-            }
-            omdbRequest(searchParam);
+            omdbRequest(param);
             break;
         case "do-what-it-says":
+            doWhat();
             break;
     }
 }
 
-
-
 function liriMenu() {
+    var exit = false;
     inquirer.prompt([
         {
             type: "list",
@@ -52,11 +47,8 @@ function liriMenu() {
             choices: inputOptions,
             name: "start"
         }
-
     ]).then(function (user) {
-
         switch (user.start) {
-
             case inputOptions[0]:
                 showTweets();
                 break;
@@ -67,8 +59,9 @@ function liriMenu() {
                 movieMenu();
                 break;
             case inputOptions[3]:
+                doWhat();
                 break;
-            case "Exit":
+            case inputOptions[4]:
                 break;
         }
     });
@@ -89,10 +82,12 @@ function showTweets() {
                 console.log("-------------------------------------------------------------------");
                 console.log("Tweet: ", tweets[i].text);
             }
-
         }
         console.log("-------------------------------------------------------------------");
-        liriMenu();
+
+        if (inputs.length == 2) {
+            liriMenu();
+        }
     });
 }
 
@@ -103,18 +98,9 @@ function spotifyMenu() {
             message: "What song would you like to spotify",
             name: "spotifyParam"
         }
-
-        //could add input for track//artist//album
-
     ]).then(function (user) {
-        // if (user.spotifyParam == "") {
-        //     spotifySong("The sign ace of base");
-        // }
-        // else {
         spotifySong(user.spotifyParam);
-        // }
     });
-
 }
 
 function spotifySong(arg) {
@@ -138,12 +124,16 @@ function spotifySong(arg) {
             console.log("Track Name: ", data.tracks.items[0].name);
             console.log("Previrew Link: ", data.tracks.items[0].preview_url)
             console.log("-------------------------------------------------------------------");
-            liriMenu();
+
         }
         else {
             console.log("-------------------------------------------------------------------");
-            console.log("No song found.");
+            console.log("Song: " + songSearch + " was not found!");
             console.log("-------------------------------------------------------------------");
+        }
+
+        if (inputs.length == 2) {
+            liriMenu();
         }
     });
 
@@ -156,63 +146,55 @@ function movieMenu() {
             message: "What movie would you like to search?",
             name: "movieParam"
         }
-
-        //could add input for track//artist//album
-
     ]).then(function (user) {
-
         omdbRequest(user.movieParam);
-
     });
 }
 
 function omdbRequest(movie) {
 
-    //  * Title of the movie.
-    //    * Year the movie came out.
-    //    * IMDB Rating of the movie.
-    //    * Country where the movie was produced.
-    //    * Language of the movie.
-    //    * Plot of the movie.
-    //    * Actors in the movie.
-    //    * Rotten Tomatoes Rating.
-    //    * Rotten Tomatoes URL.
-
     var movieRequest = "mr.nobody";
 
-
-    // need a bad request handler
     if (movie != "") {
         movieRequest = movie;
     }
-
-    console.log(movieRequest);
 
     var url = "http://www.omdbapi.com/?t=" + movieRequest + "&y=&plot=short&r=json";
 
     request(url, function (error, response, body) {
 
         if (!error && response.statusCode == 200) {
-            // console.log(body);
-            // console.log(url);
-            // console.log(response);
-            console.log("-------------------------------------------------------------------");
-            console.log("Title: ", JSON.parse(body).Title);
-            console.log("Release Year: ", JSON.parse(body).Released);
-            console.log("IMDB Rating: ", JSON.parse(body).imdbRating);
-            console.log("Country of Production: ", JSON.parse(body).Country);
-            console.log("Movie Language: ", JSON.parse(body).Language);
-            console.log("Movie Plot: ", JSON.parse(body).Plot);
-            console.log("Actors: ", JSON.parse(body).Actors);
-            if (JSON.parse(body).Ratings) {
-                console.log("Rotten Tomatoes Rating: ", JSON.parse(body).Ratings[1].Value);
-            }
-            // console.log("Rotten Tomatoes Link: ", JSON.parse(body).Released);
+            if (JSON.parse(body).Title) {
+                console.log("-------------------------------------------------------------------");
+                console.log("Title: ", JSON.parse(body).Title);
+                console.log("Release Year: ", JSON.parse(body).Released);
+                console.log("IMDB Rating: ", JSON.parse(body).imdbRating);
+                console.log("Country of Production: ", JSON.parse(body).Country);
+                console.log("Movie Language: ", JSON.parse(body).Language);
+                console.log("Movie Plot: ", JSON.parse(body).Plot);
+                console.log("Actors: ", JSON.parse(body).Actors);
+                if (JSON.parse(body).Ratings) {
+                    console.log("Rotten Tomatoes Rating: ", JSON.parse(body).Ratings[1].Value);
+                }
 
-            console.log("-------------------------------------------------------------------");
-            // console.log(index);
-            // console.log(movieObj);
-            liriMenu();
+                console.log("-------------------------------------------------------------------");
+            }
+            else {
+                console.log("-------------------------------------------------------------------");
+                console.log("Movie: " + movieRequest + "was not found!");
+                console.log("-------------------------------------------------------------------");
+            }
+            if (inputs.length == 2) {
+                liriMenu();
+            }
         }
+    });
+}
+
+function doWhat() {
+    var fs = require("fs");
+    fs.readFile("random.txt", "utf8", function (error, data) {
+        var dataArr = data.split(",");
+        discreteCall(dataArr[0], dataArr[1]);
     });
 }
