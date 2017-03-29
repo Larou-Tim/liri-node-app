@@ -4,7 +4,9 @@ var twitter = require("twitter");
 var spotify = require('spotify');
 var request = require("request");
 
-var inputOptions = ["my-tweets", `spotify-this-song`, `movie-this`, `do-what-it-says`, 'Exit']
+// add arg to not call menu if discrete call is applied
+
+var inputOptions = [" > Show my Tweets", ` > Spotify a song`, ` > Movie Look-up`, ` > do-what-it-says`, ' > Exit']
 
 var inputs = process.argv;
 
@@ -55,16 +57,16 @@ function liriMenu() {
 
         switch (user.start) {
 
-            case "my-tweets":
+            case inputOptions[0]:
                 showTweets();
                 break;
-            case "spotify-this-song":
+            case inputOptions[1]:
                 spotifyMenu();
                 break;
-            case "movie-this":
+            case inputOptions[2]:
                 movieMenu();
                 break;
-            case "do-what-it-says":
+            case inputOptions[3]:
                 break;
             case "Exit":
                 break;
